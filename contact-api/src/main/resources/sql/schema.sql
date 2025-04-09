@@ -1,0 +1,2 @@
+CREATE SCHEMA IF NOT EXISTS contact_schema;
+

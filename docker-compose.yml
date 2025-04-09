@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  contact-db:
+    container_name: contact-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: developer
+      POSTGRES_DB: contactdb
+    volumes:
+      - contact-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-net
+
+  report-db:
+    container_name: report-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: developer
+      POSTGRES_DB: reportdb
+    volumes:
+      - report-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - app-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # RabbitMQ messaging port
+      - "15672:15672" # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-net
+
+  contact-service:
+    build:
+      context: ./contact-api
+    container_name: contact-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      - contact-db
+      - rabbitmq
+    networks:
+      - app-net
+
+  report-service:
+    build:
+      context: ./report-api
+    container_name: report-service
+    ports:
+      - "8082:8080"
+    depends_on:
+      - report-db
+      - rabbitmq
+    networks:
+      - app-net
+
+volumes:
+  contact-data:
+  report-data:
+
+networks:
+  app-net:
+    driver: bridge
